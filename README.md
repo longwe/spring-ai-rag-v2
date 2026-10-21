@@ -46,7 +46,7 @@ curl -H "Content-Type: application/json" \
 | `app.claude.effort` | `medium` | Claude effort: `low`, `medium`, `high`, `xhigh` or `max` |
 | `app.claude.fallbacks-enabled` | `true` | Re-run requests Claude declines on Anthropic's recommended fallback model |
 | `app.rag.top-k` | `4` | Number of chunks retrieved per question |
-| `app.rag.similarity-threshold` | `0.5` | Minimum similarity for a chunk to be used |
+| `app.rag.similarity-threshold` | `0.3` | Minimum similarity for a chunk to be used |
 | `app.rag.chunk-size` | `800` | Target chunk size in tokens |
 | `app.rag.min-chunk-size-chars` | `350` | Minimum chunk size in characters |
 | `app.rag.load-sample-on-startup` | `false` | Ingest the bundled sample document at startup |

@@ -40,7 +40,7 @@ app:
     fallbacks-enabled: true
   rag:
     top-k: 4
-    similarity-threshold: 0.5
+    similarity-threshold: 0.3
     chunk-size: 800
     min-chunk-size-chars: 350
     load-sample-on-startup: false

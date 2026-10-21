@@ -9,7 +9,7 @@ import org.springframework.boot.context.properties.bind.DefaultValue;
 @ConfigurationProperties(prefix = "app.rag")
 public record RagProperties(
         @DefaultValue("4") int topK,
-        @DefaultValue("0.5") double similarityThreshold,
+        @DefaultValue("0.3") double similarityThreshold,
         @DefaultValue("800") int chunkSize,
         @DefaultValue("350") int minChunkSizeChars) {
 }
