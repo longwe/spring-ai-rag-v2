@@ -10,5 +10,32 @@ services:
     volumes:
       - pgvector-data:/var/lib/postgresql/data
 
+  prometheus:
+    image: prom/prometheus:v3.15.0
+    ports:
+      - "127.0.0.1:9090:9090"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+
+  grafana:
+    image: grafana/grafana:13.2.4
+    depends_on:
+      - prometheus
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-admin}
+      GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH: /var/lib/grafana/dashboards/spring-ai-rag.json
+    ports:
+      - "127.0.0.1:3000:3000"
+    volumes:
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - grafana-data:/var/lib/grafana
+
 volumes:
   pgvector-data:
+  prometheus-data:
+  grafana-data:

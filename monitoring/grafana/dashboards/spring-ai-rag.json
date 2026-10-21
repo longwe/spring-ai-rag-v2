@@ -1,0 +1,376 @@
+{
+  "uid": "spring-ai-rag",
+  "title": "spring-ai-rag: Claude telemetry",
+  "schemaVersion": 39,
+  "time": {
+    "from": "now-1h",
+    "to": "now"
+  },
+  "refresh": "30s",
+  "tags": [
+    "spring-ai",
+    "claude"
+  ],
+  "panels": [
+    {
+      "id": 1,
+      "type": "stat",
+      "title": "Claude tokens (time range)",
+      "description": "",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 8,
+        "h": 5
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "sum by (gen_ai_token_type) (increase(gen_ai_client_token_usage_total{application=\"spring-ai-rag\",gen_ai_system=\"anthropic\",gen_ai_token_type!=\"total\"}[$__range]))",
+          "legendFormat": "{{gen_ai_token_type}}"
+        }
+      ],
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "colorMode": "value",
+        "graphMode": "none"
+      }
+    },
+    {
+      "id": 2,
+      "type": "stat",
+      "title": "Claude calls (time range)",
+      "description": "",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "x": 8,
+        "y": 0,
+        "w": 8,
+        "h": 5
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "sum(increase(gen_ai_client_operation_seconds_count{application=\"spring-ai-rag\",gen_ai_system=\"anthropic\"}[$__range]))",
+          "legendFormat": "calls"
+        }
+      ],
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "colorMode": "value",
+        "graphMode": "none"
+      }
+    },
+    {
+      "id": 3,
+      "type": "stat",
+      "title": "Claude refusals and fallbacks (time range)",
+      "description": "",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "x": 16,
+        "y": 0,
+        "w": 8,
+        "h": 5
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "sum(increase(claude_refusals_total{application=\"spring-ai-rag\"}[$__range])) or vector(0)",
+          "legendFormat": "refusals"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "sum(increase(claude_fallbacks_total{application=\"spring-ai-rag\"}[$__range])) or vector(0)",
+          "legendFormat": "fallbacks"
+        }
+      ],
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "colorMode": "value",
+        "graphMode": "none"
+      }
+    },
+    {
+      "id": 4,
+      "type": "timeseries",
+      "title": "Claude tokens per minute",
+      "description": "",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 5,
+        "w": 12,
+        "h": 8
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "sum by (gen_ai_token_type) (rate(gen_ai_client_token_usage_total{application=\"spring-ai-rag\",gen_ai_system=\"anthropic\",gen_ai_token_type!=\"total\"}[$__rate_interval])) * 60",
+          "legendFormat": "{{gen_ai_token_type}}"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "type": "timeseries",
+      "title": "Claude call latency",
+      "description": "",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 5,
+        "w": 12,
+        "h": 8
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "sum(rate(gen_ai_client_operation_seconds_sum{application=\"spring-ai-rag\",gen_ai_system=\"anthropic\"}[$__rate_interval])) / sum(rate(gen_ai_client_operation_seconds_count{application=\"spring-ai-rag\",gen_ai_system=\"anthropic\"}[$__rate_interval]))",
+          "legendFormat": "average"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "max(gen_ai_client_operation_seconds_max{application=\"spring-ai-rag\",gen_ai_system=\"anthropic\"})",
+          "legendFormat": "max"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "type": "timeseries",
+      "title": "Claude calls per minute",
+      "description": "error=none means the call succeeded",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 13,
+        "w": 12,
+        "h": 8
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "sum by (error) (rate(gen_ai_client_operation_seconds_count{application=\"spring-ai-rag\",gen_ai_system=\"anthropic\"}[$__rate_interval])) * 60",
+          "legendFormat": "error={{error}}"
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "type": "timeseries",
+      "title": "Claude refusals and fallbacks",
+      "description": "",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 13,
+        "w": 12,
+        "h": 8
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "sum by (category) (increase(claude_refusals_total{application=\"spring-ai-rag\"}[$__rate_interval]))",
+          "legendFormat": "refusal: {{category}}"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "sum by (from, to) (increase(claude_fallbacks_total{application=\"spring-ai-rag\"}[$__rate_interval]))",
+          "legendFormat": "fallback: {{from}} -> {{to}}"
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "type": "timeseries",
+      "title": "/api/chat latency (retrieval + Claude)",
+      "description": "",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 21,
+        "w": 12,
+        "h": 8
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "sum(rate(http_server_requests_seconds_sum{application=\"spring-ai-rag\",uri=\"/api/chat\"}[$__rate_interval])) / sum(rate(http_server_requests_seconds_count{application=\"spring-ai-rag\",uri=\"/api/chat\"}[$__rate_interval]))",
+          "legendFormat": "average"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "max(http_server_requests_seconds_max{application=\"spring-ai-rag\",uri=\"/api/chat\"})",
+          "legendFormat": "max"
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "type": "timeseries",
+      "title": "OpenAI embedding tokens per minute",
+      "description": "",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 21,
+        "w": 12,
+        "h": 8
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "sum(rate(gen_ai_client_token_usage_total{application=\"spring-ai-rag\",gen_ai_system=\"openai\",gen_ai_token_type=\"input\"}[$__rate_interval])) * 60",
+          "legendFormat": "input"
+        }
+      ]
+    }
+  ]
+}

@@ -7,13 +7,13 @@ Then ask questions, answered by Claude (`claude-opus-5-5`) from those documents.
 ## Requirements
 
 - Java 21+
-- Docker (for PostgreSQL + pgvector)
+- Docker (for PostgreSQL + pgvector, Prometheus and Grafana)
 - An Anthropic API key (chat) and an OpenAI API key (embeddings)
 
 ## Run
 
 ```bash
-docker compose up -d                 # start pgvector on localhost:5432
+docker compose up -d                 # pgvector (5432), Prometheus (9090), Grafana (3000)
 export ANTHROPIC_API_KEY=sk-ant-...
 export OPENAI_API_KEY=sk-...
 ./mvnw spring-boot:run
@@ -71,7 +71,37 @@ Metrics at `/actuator/metrics`:
 | `claude.refusals` | this app | Requests Claude declined, tagged by model and category |
 | `claude.fallbacks` | this app | Requests re-run on a fallback model, tagged by from / to model |
 
-Add a Micrometer registry such as `micrometer-registry-prometheus` to export them.
+### Prometheus
+
+Metrics are exported in Prometheus format at `/actuator/prometheus`, tagged with `application="spring-ai-rag"`.
+Dots in names become underscores, so the metrics above appear as `gen_ai_client_operation_seconds`,
+`gen_ai_client_token_usage_total`, `claude_refusals_total` and `claude_fallbacks_total`. The two `claude_*`
+counters only appear after their first event.
+
+### Prometheus and Grafana
+
+`docker compose up -d` also starts:
+
+- **Prometheus** at http://localhost:9090, scraping the app every 15 seconds. The app runs on the host, so the
+  scrape target is `host.docker.internal:8080` (see `monitoring/prometheus/prometheus.yml`).
+- **Grafana** at http://localhost:3000 (login `admin` / `admin`; override with `GRAFANA_ADMIN_USER` and
+  `GRAFANA_ADMIN_PASSWORD`). The **spring-ai-rag: Claude telemetry** dashboard opens as the home page and shows
+  Claude tokens, calls, latency, refusals and fallbacks, `/api/chat` latency, and OpenAI embedding tokens.
+
+Both are bound to `127.0.0.1` only. The dashboard and data source are provisioned from `monitoring/grafana/`;
+edit `monitoring/grafana/dashboards/spring-ai-rag.json` to change the dashboard. Short time ranges with few calls
+can show fractional totals, because Prometheus extrapolates `increase()` from sparse samples.
+
+Example queries:
+
+```promql
+# Claude tokens per minute, by type
+sum by (gen_ai_token_type) (rate(gen_ai_client_token_usage_total{gen_ai_system="anthropic"}[5m])) * 60
+
+# Average Claude call latency
+rate(gen_ai_client_operation_seconds_sum{gen_ai_system="anthropic"}[5m])
+  / rate(gen_ai_client_operation_seconds_count{gen_ai_system="anthropic"}[5m])
+```
 
 ### Spring AI 1.0 compatibility
 
@@ -91,4 +121,8 @@ com.ezcloud.springai
 ├── dto           Request/response records
 ├── exception     Global error handling
 └── ingestion     Document reading, chunking and vector-store loading
+
+monitoring/
+├── prometheus    Scrape config
+└── grafana       Data source, dashboard provisioning and the Claude telemetry dashboard
 ```
